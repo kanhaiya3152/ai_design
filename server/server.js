@@ -198,13 +198,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/' , (req,res)=>{res.send("Welcome to my backend")})
+
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port http://localhost:${PORT}`);
   console.log('Environment check:');
   console.log('- Gemini API Key:', process.env.GEMINI_API_KEY ? 'Set' : 'Missing');
   console.log('- ClipDrop API Key:', process.env.CLIPDROP_API_KEY ? 'Set' : 'Missing');

@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Send, Loader2, Sparkles, Home, Building, HardHat, PartyPopper } from 'lucide-react';
 import axios from 'axios'
 
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+
 const AiDesignStudio = () => {
   const [prompt, setPrompt] = useState('');
   const [useCase, setUseCase] = useState('interior');
