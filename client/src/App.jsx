@@ -20,6 +20,21 @@ const AiDesignStudio = () => {
     { id: 'event', label: 'Event Design', icon: PartyPopper, description: 'Seating, lighting, themes' }
   ];
 
+  const getApiBaseUrl = () => {
+    // For production deployment
+    if (import.meta.env.VITE_API_BASE_URL) {
+      return import.meta.env.VITE_API_BASE_URL;
+    }
+
+    // For development - detect if we're running locally
+    if (import.meta.env.DEV) {
+      return 'http://localhost:3001';
+    }
+
+    // If deployed but no env var set, you'll need to set your Vercel backend URL
+    return 'https://ai-design-rho.vercel.app';
+  };
+
   // Initialize speech recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -70,31 +85,48 @@ const AiDesignStudio = () => {
     }
   };
 
-  // Mock AI generation function (replace with actual API calls)
+  // AI generation function with API calls
   const generateDesigns = async () => {
     setIsGenerating(true);
     setError('');
-    setDesignResults(null); // Clear previous results
+    setDesignResults(null);
 
     try {
-      // Make a POST request to your backend
-      const response = await axios.post('http://localhost:3001/api/generate-design', {
+      const apiBaseUrl = getApiBaseUrl();
+      console.log('Making request to:', `${apiBaseUrl}/api/generate-design`);
+      
+      // Use the full URL instead of relying on axios defaults
+      const response = await axios.post(`${apiBaseUrl}/api/generate-design`, {
         prompt: prompt,
         useCase: useCase
+      }, {
+        timeout: 60000, // 60 second timeout for image generation
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      // The backend returns an object { concepts: [...] }
-      // We set the state with the 'concepts' array
       if (response.data && response.data.concepts) {
         setDesignResults(response.data.concepts);
       } else {
-        // Handle cases where the backend might not return the expected structure
         throw new Error('Invalid response structure from server.');
       }
 
     } catch (err) {
-      // Display a more informative error message from the backend if available
-      const errorMessage = err.response?.data?.error || 'Failed to generate designs. Please check the server and try again.';
+      console.error('Error generating designs:', err);
+      
+      let errorMessage = 'Failed to generate designs. Please try again.';
+      
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. The server might be busy. Please try again.';
+      } else if (err.response) {
+        // Server responded with an error
+        errorMessage = err.response.data?.error || `Server error: ${err.response.status}`;
+      } else if (err.request) {
+        // Network error
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      }
+      
       setError(errorMessage);
     } finally {
       setIsGenerating(false);
