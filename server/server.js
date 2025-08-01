@@ -1,4 +1,3 @@
-// server/server.js
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config'
@@ -7,11 +6,9 @@ import axios from 'axios';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Environment variables validation
 const requiredEnvVars = ['GEMINI_API_KEY', 'CLIPDROP_API_KEY'];
 requiredEnvVars.forEach(envVar => {
   if (!process.env[envVar]) {
@@ -49,7 +46,7 @@ Please format your response as a valid JSON object with this exact structure:
 Make sure each concept is distinctly different from the others, with unique approaches and creative solutions. The imagePrompt should be detailed enough to generate a compelling sketch-style architectural/design rendering.`;
 };
 
-// Generate design concepts using Gemini
+// Generate text using Gemini
 async function generateTextConcepts(prompt, useCase) {
   try {
     const geminiPrompt = getUseCasePrompt(useCase, prompt);
@@ -72,10 +69,8 @@ async function generateTextConcepts(prompt, useCase) {
 
     const generatedText = response.data.candidates[0].content.parts[0].text;
     
-    // Clean the response and parse JSON
     let cleanedText = generatedText.trim();
     
-    // Remove markdown code blocks if present
     if (cleanedText.startsWith('```json')) {
       cleanedText = cleanedText.replace(/```json\n?/, '').replace(/\n?```$/, '');
     } else if (cleanedText.startsWith('```')) {
@@ -88,7 +83,7 @@ async function generateTextConcepts(prompt, useCase) {
       console.error('JSON parsing error:', parseError);
       console.error('Raw response:', cleanedText);
       
-      // Fallback: create a structured response
+      // Fallback
       return {
         concepts: [
           {
@@ -135,13 +130,12 @@ async function generateImage(imagePrompt) {
       }
     );
 
-    // Convert image to base64
     const base64Image = Buffer.from(response.data).toString('base64');
     return `data:image/png;base64,${base64Image}`;
     
   } catch (error) {
     console.error('ClipDrop API error:', error.response?.data || error.message);
-    return null; // Return null instead of throwing to allow partial success
+    return null;
   }
 }
 
@@ -158,14 +152,12 @@ app.post('/api/generate-design', async (req, res) => {
 
     console.log('Generating designs for:', { prompt, useCase });
 
-    // Step 1: Generate text concepts using Gemini
     const textResponse = await generateTextConcepts(prompt, useCase);
     
     if (!textResponse.concepts || textResponse.concepts.length === 0) {
       throw new Error('No concepts generated');
     }
 
-    // Step 2: Generate images for each concept using ClipDrop
     const conceptsWithImages = await Promise.all(
       textResponse.concepts.map(async (concept, index) => {
         console.log(`Generating image ${index + 1}/3...`);
@@ -206,13 +198,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment check:');
