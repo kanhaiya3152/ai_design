@@ -162,7 +162,7 @@ const AiDesignStudio = () => {
 
       setDesignResults(mockResults[useCase]);
     } catch (err) {
-      setError('Failed to generate designs. Please try again.');
+      setError('Failed to generate designs. Please try again.',err);
     } finally {
       setIsGenerating(false);
     }
