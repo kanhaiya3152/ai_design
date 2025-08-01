@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Send, Loader2, Sparkles, Home, Building, HardHat, PartyPopper } from 'lucide-react';
 import axios from 'axios'
-import 'dotenv/config'
 
 const AiDesignStudio = () => {
   const [prompt, setPrompt] = useState('');
@@ -69,10 +68,6 @@ const AiDesignStudio = () => {
     }
   };
 
-  const API_URL = process.env.NODE_ENV === 'production'
-    ? '/api/generate-design'
-    : 'http://localhost:3001/api/generate-design';
-
   // Mock AI generation function (replace with actual API calls)
   const generateDesigns = async () => {
     setIsGenerating(true);
@@ -81,7 +76,7 @@ const AiDesignStudio = () => {
 
     try {
       // Make a POST request to your backend
-      const response = await axios.post(API_URL, {
+      const response = await axios.post('http://localhost:3001/api/generate-design', {
         prompt: prompt,
         useCase: useCase
       });
